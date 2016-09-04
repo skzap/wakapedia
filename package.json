@@ -1,0 +1,20 @@
+{
+  "name": "wakapedia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "concat-templates.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node concat-templates.js; browserify wakapedia.js -o output/wakapedia.js; node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concat-files": "^0.1.0",
+    "express": "^4.14.0",
+    "jquery": "^3.1.0",
+    "marked": "^0.3.6",
+    "ractive": "^0.7.3",
+    "wakajs": "0.0.3"
+  }
+}
