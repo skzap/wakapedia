@@ -14,7 +14,7 @@ Wakapedia.Templates.Article = new Ractive({
     Wakapedia.Templates.Article.set('hidden', false)
     var re = new RegExp("^"+title+"$", 'i');
     // search on waka
-    Wakapedia.Templates.Article.searchForArticle(title)
+    Waka.api.Search(title)
     Waka.db.Articles.findOne({title: re}, {}, function(art) {
       if (art) Wakapedia.Templates.Article.refreshArticleTemplate(art)
       else {
@@ -52,19 +52,19 @@ Wakapedia.Templates.Article = new Ractive({
     if (article.content.text.substr(0,2) == '[[' && article.content.text.substr(article.content.text.length-2, 2) == ']]')
       Wakapedia.Templates.Article.displayAndSearch(article.content.text.substr(2,article.content.text.length-4), true)
   },
-  searchForArticle: function(title) {
-    console.log('Searching for',title)
-    Waka.mem.Search.find({origin: Waka.c.id},{}).fetch(function(s) {
-      for (var i = 0; i < s.length; i++) {
-        Waka.mem.Search.remove(s[i]._id)
-      }
-    })
-    Waka.mem.Search.upsert({title: title, origin: Waka.c.id})
-    Waka.c.broadcast({
-      c:'search',
-      data: {title: title, origin: Waka.c.id, echo: 2}
-    })
-  },
+  // searchForArticle: function(title) {
+  //   console.log('Searching for',title)
+  //   Waka.mem.Search.find({origin: Waka.c.id},{}).fetch(function(s) {
+  //     for (var i = 0; i < s.length; i++) {
+  //       Waka.mem.Search.remove(s[i]._id)
+  //     }
+  //   })
+  //   Waka.mem.Search.upsert({title: title, origin: Waka.c.id})
+  //   Waka.c.broadcast({
+  //     c:'search',
+  //     data: {title: title, origin: Waka.c.id, echo: 2}
+  //   })
+  // },
   createFromWiki: function() {
     var params = window.location.hash.split('#')
     var searchTitle = params[1]
@@ -73,19 +73,19 @@ Wakapedia.Templates.Article = new Ractive({
     if (wiki.title.toLowerCase() != searchTitle.toLowerCase())
       Wakapedia.AddNewRedirect(searchTitle, wiki.title, function(){})
     if (wiki.thumbnail && wiki.thumbnail.original)
-      Wakapedia.AddNewArticle(wiki.title, wiki.extract, wiki.thumbnail.original, function() {
-        Wakapedia.Templates.Article.displayAndSearch(wiki.title, true)
+      Wakapedia.AddNewArticle(wiki.title, wiki.extract, wiki.thumbnail.original, function(e,r) {
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
       })
     else
-      Wakapedia.AddNewArticle(wiki.title, wiki.extract, null, function() {
-        Wakapedia.Templates.Article.displayAndSearch(wiki.title, true)
+      Wakapedia.AddNewArticle(wiki.title, wiki.extract, null, function(e,r) {
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
       })
   },
   createBlankArticle: function() {
     var params = window.location.hash.split('#')
     var title = params[1]
-    Wakapedia.AddNewArticle(title, '', null, function() {
-      Wakapedia.Templates.Article.displayAndSearch(title, true)
+    Wakapedia.AddNewArticle(title, '', null, function(e,r) {
+      Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
     })
   },
   switchEditMode: function() {
@@ -137,8 +137,8 @@ Wakapedia.Templates.Article = new Ractive({
   saveArticle: function() {
     var currentArticle = Wakapedia.Templates.Article.get().article
     if (!currentArticle) return
-    Wakapedia.AddNewArticle(currentArticle.title, $('#editContent').val(), $('#editImage').val(), function() {
-      Wakapedia.Templates.Article.displayAndSearch(currentArticle.title, true)
+    Wakapedia.AddNewArticle(currentArticle.title, $('#editContent').val(), $('#editImage').val(), function(e,r) {
+      Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
     })
   },
   compareVariant: function(event) {

@@ -7,6 +7,7 @@ Wakapedia.Templates.Network = new Ractive({
   refresh: function() {
     Waka.mem.Peers.find({},{}).fetch(function(res){
       Wakapedia.Templates.Network.set('connected', res.length)
+      Wakapedia.Templates.Network.set('myId', Waka.c.id)
       var articles = []
       for (var i = 0; i < res.length; i++) {
         if (!res[i].index) continue
@@ -22,8 +23,4 @@ Wakapedia.Templates.Network = new Ractive({
       })
     })
   }
-})
-
-Wakapedia.Templates.Network.observeOnce('connected', function(r,p){
-  if (r) Wakapedia.CheckUrlHash()
 })

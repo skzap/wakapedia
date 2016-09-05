@@ -1,4 +1,4 @@
-require('wakajs')
+require('../waka3/waka.js')
 var Config = require('./config.json')
 var Ractive = require( 'ractive' )
 var marked = require('marked')
@@ -52,6 +52,17 @@ Wakapedia = {
 }
 require('./templates/article.js')
 require('./templates/network.js')
+
+// Plug Waka Events
+Waka.api.Emitter.on('connected', listener = function(){
+  Wakapedia.CheckUrlHash()
+})
+Waka.api.Emitter.on('peerchange', listener = function(){
+  Wakapedia.Templates.Network.refresh()
+})
+Waka.api.Emitter.on('newshare', listener = function(article){
+  Wakapedia.Templates.Article.refreshArticleTemplate(article)
+})
 
 // search feature
 $( "#search" ).submit(function( event ) {

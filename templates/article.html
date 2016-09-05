@@ -45,7 +45,7 @@
     {{#if edit}}
       <div id='waka-edit'>
         <input id='editImage' type='text' value='{{article.content.image}}' />
-        <textarea id='editContent' style='width:100%' rows='20'>{{article.content}}</textarea>
+        <textarea id='editContent' style='width:100%' rows='20'>{{article.content.text}}</textarea>
         <button id='saveArticle' on-click='saveArticle' type='submit'>Save Article</button>
       </div>
     {{else}}
