@@ -93,6 +93,7 @@ Wakapedia.Templates.Article = new Ractive({
   },
   checkVariants: function(cb) {
     var article = Wakapedia.Templates.Article.get('article')
+    if (!article) return;
     var title = article.title
     if (!title) return
     Waka.mem.Peers.find({'index.title': title},{}).fetch(function(peers){
