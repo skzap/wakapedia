@@ -285,6 +285,341 @@ module.exports={
 },{}],3:[function(require,module,exports){
 'use strict';
 
+var assign        = require('es5-ext/object/assign')
+  , normalizeOpts = require('es5-ext/object/normalize-options')
+  , isCallable    = require('es5-ext/object/is-callable')
+  , contains      = require('es5-ext/string/#/contains')
+
+  , d;
+
+d = module.exports = function (dscr, value/*, options*/) {
+	var c, e, w, options, desc;
+	if ((arguments.length < 2) || (typeof dscr !== 'string')) {
+		options = value;
+		value = dscr;
+		dscr = null;
+	} else {
+		options = arguments[2];
+	}
+	if (dscr == null) {
+		c = w = true;
+		e = false;
+	} else {
+		c = contains.call(dscr, 'c');
+		e = contains.call(dscr, 'e');
+		w = contains.call(dscr, 'w');
+	}
+
+	desc = { value: value, configurable: c, enumerable: e, writable: w };
+	return !options ? desc : assign(normalizeOpts(options), desc);
+};
+
+d.gs = function (dscr, get, set/*, options*/) {
+	var c, e, options, desc;
+	if (typeof dscr !== 'string') {
+		options = set;
+		set = get;
+		get = dscr;
+		dscr = null;
+	} else {
+		options = arguments[3];
+	}
+	if (get == null) {
+		get = undefined;
+	} else if (!isCallable(get)) {
+		options = get;
+		get = set = undefined;
+	} else if (set == null) {
+		set = undefined;
+	} else if (!isCallable(set)) {
+		options = set;
+		set = undefined;
+	}
+	if (dscr == null) {
+		c = true;
+		e = false;
+	} else {
+		c = contains.call(dscr, 'c');
+		e = contains.call(dscr, 'e');
+	}
+
+	desc = { get: get, set: set, configurable: c, enumerable: e };
+	return !options ? desc : assign(normalizeOpts(options), desc);
+};
+
+},{"es5-ext/object/assign":4,"es5-ext/object/is-callable":7,"es5-ext/object/normalize-options":11,"es5-ext/string/#/contains":14}],4:[function(require,module,exports){
+'use strict';
+
+module.exports = require('./is-implemented')()
+	? Object.assign
+	: require('./shim');
+
+},{"./is-implemented":5,"./shim":6}],5:[function(require,module,exports){
+'use strict';
+
+module.exports = function () {
+	var assign = Object.assign, obj;
+	if (typeof assign !== 'function') return false;
+	obj = { foo: 'raz' };
+	assign(obj, { bar: 'dwa' }, { trzy: 'trzy' });
+	return (obj.foo + obj.bar + obj.trzy) === 'razdwatrzy';
+};
+
+},{}],6:[function(require,module,exports){
+'use strict';
+
+var keys  = require('../keys')
+  , value = require('../valid-value')
+
+  , max = Math.max;
+
+module.exports = function (dest, src/*, …srcn*/) {
+	var error, i, l = max(arguments.length, 2), assign;
+	dest = Object(value(dest));
+	assign = function (key) {
+		try { dest[key] = src[key]; } catch (e) {
+			if (!error) error = e;
+		}
+	};
+	for (i = 1; i < l; ++i) {
+		src = arguments[i];
+		keys(src).forEach(assign);
+	}
+	if (error !== undefined) throw error;
+	return dest;
+};
+
+},{"../keys":8,"../valid-value":13}],7:[function(require,module,exports){
+// Deprecated
+
+'use strict';
+
+module.exports = function (obj) { return typeof obj === 'function'; };
+
+},{}],8:[function(require,module,exports){
+'use strict';
+
+module.exports = require('./is-implemented')()
+	? Object.keys
+	: require('./shim');
+
+},{"./is-implemented":9,"./shim":10}],9:[function(require,module,exports){
+'use strict';
+
+module.exports = function () {
+	try {
+		Object.keys('primitive');
+		return true;
+	} catch (e) { return false; }
+};
+
+},{}],10:[function(require,module,exports){
+'use strict';
+
+var keys = Object.keys;
+
+module.exports = function (object) {
+	return keys(object == null ? object : Object(object));
+};
+
+},{}],11:[function(require,module,exports){
+'use strict';
+
+var forEach = Array.prototype.forEach, create = Object.create;
+
+var process = function (src, obj) {
+	var key;
+	for (key in src) obj[key] = src[key];
+};
+
+module.exports = function (options/*, …options*/) {
+	var result = create(null);
+	forEach.call(arguments, function (options) {
+		if (options == null) return;
+		process(Object(options), result);
+	});
+	return result;
+};
+
+},{}],12:[function(require,module,exports){
+'use strict';
+
+module.exports = function (fn) {
+	if (typeof fn !== 'function') throw new TypeError(fn + " is not a function");
+	return fn;
+};
+
+},{}],13:[function(require,module,exports){
+'use strict';
+
+module.exports = function (value) {
+	if (value == null) throw new TypeError("Cannot use null or undefined");
+	return value;
+};
+
+},{}],14:[function(require,module,exports){
+'use strict';
+
+module.exports = require('./is-implemented')()
+	? String.prototype.contains
+	: require('./shim');
+
+},{"./is-implemented":15,"./shim":16}],15:[function(require,module,exports){
+'use strict';
+
+var str = 'razdwatrzy';
+
+module.exports = function () {
+	if (typeof str.contains !== 'function') return false;
+	return ((str.contains('dwa') === true) && (str.contains('foo') === false));
+};
+
+},{}],16:[function(require,module,exports){
+'use strict';
+
+var indexOf = String.prototype.indexOf;
+
+module.exports = function (searchString/*, position*/) {
+	return indexOf.call(this, searchString, arguments[1]) > -1;
+};
+
+},{}],17:[function(require,module,exports){
+'use strict';
+
+var d        = require('d')
+  , callable = require('es5-ext/object/valid-callable')
+
+  , apply = Function.prototype.apply, call = Function.prototype.call
+  , create = Object.create, defineProperty = Object.defineProperty
+  , defineProperties = Object.defineProperties
+  , hasOwnProperty = Object.prototype.hasOwnProperty
+  , descriptor = { configurable: true, enumerable: false, writable: true }
+
+  , on, once, off, emit, methods, descriptors, base;
+
+on = function (type, listener) {
+	var data;
+
+	callable(listener);
+
+	if (!hasOwnProperty.call(this, '__ee__')) {
+		data = descriptor.value = create(null);
+		defineProperty(this, '__ee__', descriptor);
+		descriptor.value = null;
+	} else {
+		data = this.__ee__;
+	}
+	if (!data[type]) data[type] = listener;
+	else if (typeof data[type] === 'object') data[type].push(listener);
+	else data[type] = [data[type], listener];
+
+	return this;
+};
+
+once = function (type, listener) {
+	var once, self;
+
+	callable(listener);
+	self = this;
+	on.call(this, type, once = function () {
+		off.call(self, type, once);
+		apply.call(listener, this, arguments);
+	});
+
+	once.__eeOnceListener__ = listener;
+	return this;
+};
+
+off = function (type, listener) {
+	var data, listeners, candidate, i;
+
+	callable(listener);
+
+	if (!hasOwnProperty.call(this, '__ee__')) return this;
+	data = this.__ee__;
+	if (!data[type]) return this;
+	listeners = data[type];
+
+	if (typeof listeners === 'object') {
+		for (i = 0; (candidate = listeners[i]); ++i) {
+			if ((candidate === listener) ||
+					(candidate.__eeOnceListener__ === listener)) {
+				if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
+				else listeners.splice(i, 1);
+			}
+		}
+	} else {
+		if ((listeners === listener) ||
+				(listeners.__eeOnceListener__ === listener)) {
+			delete data[type];
+		}
+	}
+
+	return this;
+};
+
+emit = function (type) {
+	var i, l, listener, listeners, args;
+
+	if (!hasOwnProperty.call(this, '__ee__')) return;
+	listeners = this.__ee__[type];
+	if (!listeners) return;
+
+	if (typeof listeners === 'object') {
+		l = arguments.length;
+		args = new Array(l - 1);
+		for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
+
+		listeners = listeners.slice();
+		for (i = 0; (listener = listeners[i]); ++i) {
+			apply.call(listener, this, args);
+		}
+	} else {
+		switch (arguments.length) {
+		case 1:
+			call.call(listeners, this);
+			break;
+		case 2:
+			call.call(listeners, this, arguments[1]);
+			break;
+		case 3:
+			call.call(listeners, this, arguments[1], arguments[2]);
+			break;
+		default:
+			l = arguments.length;
+			args = new Array(l - 1);
+			for (i = 1; i < l; ++i) {
+				args[i - 1] = arguments[i];
+			}
+			apply.call(listeners, this, args);
+		}
+	}
+};
+
+methods = {
+	on: on,
+	once: once,
+	off: off,
+	emit: emit
+};
+
+descriptors = {
+	on: d(on),
+	once: d(once),
+	off: d(off),
+	emit: d(emit)
+};
+
+base = defineProperties({}, descriptors);
+
+module.exports = exports = function (o) {
+	return (o == null) ? create(base) : defineProperties(Object(o), descriptors);
+};
+exports.methods = methods;
+
+},{"d":3,"es5-ext/object/valid-callable":12}],18:[function(require,module,exports){
+'use strict';
+
 /**
  * Representation of a single EventEmitter function.
  *
@@ -513,7 +848,7 @@ EventEmitter.EventEmitter3 = EventEmitter;
 //
 module.exports = EventEmitter;
 
-},{}],4:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /*global window:false, self:false, define:false, module:false */
 
 /**
@@ -1920,7 +2255,7 @@ module.exports = EventEmitter;
 
 }, this);
 
-},{}],5:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /*eslint-disable no-unused-vars*/
 /*!
  * jQuery JavaScript Library v3.1.0
@@ -11996,7 +12331,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],6:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var BufferBuilder = require('./bufferbuilder').BufferBuilder;
 var binaryFeatures = require('./bufferbuilder').binaryFeatures;
 
@@ -12517,7 +12852,7 @@ function utf8Length(str){
   }
 }
 
-},{"./bufferbuilder":7}],7:[function(require,module,exports){
+},{"./bufferbuilder":22}],22:[function(require,module,exports){
 var binaryFeatures = {};
 binaryFeatures.useBlobBuilder = (function(){
   try {
@@ -12583,7 +12918,7 @@ BufferBuilder.prototype.getBuffer = function() {
 
 module.exports.BufferBuilder = BufferBuilder;
 
-},{}],8:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function (global){
 /**
  * jshashes - https://github.com/h2non/jshashes
@@ -14352,7 +14687,7 @@ module.exports.BufferBuilder = BufferBuilder;
 }()); // IIFE
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -26707,7 +27042,7 @@ module.exports.BufferBuilder = BufferBuilder;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -27997,7 +28332,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 exports.MemoryDb = require('./lib/MemoryDb');
 exports.LocalStorageDb = require('./lib/LocalStorageDb');
 exports.IndexedDb = require('./lib/IndexedDb');
@@ -28006,7 +28341,7 @@ exports.RemoteDb = require('./lib/RemoteDb');
 exports.HybridDb = require('./lib/HybridDb');
 exports.utils = require('./lib/utils');
 
-},{"./lib/HybridDb":13,"./lib/IndexedDb":14,"./lib/LocalStorageDb":15,"./lib/MemoryDb":16,"./lib/RemoteDb":17,"./lib/WebSQLDb":18,"./lib/utils":21}],12:[function(require,module,exports){
+},{"./lib/HybridDb":28,"./lib/IndexedDb":29,"./lib/LocalStorageDb":30,"./lib/MemoryDb":31,"./lib/RemoteDb":32,"./lib/WebSQLDb":33,"./lib/utils":36}],27:[function(require,module,exports){
 var _ = require('lodash');
 
 EJSON = {}; // Global!
@@ -28334,7 +28669,7 @@ EJSON.clone = function (v) {
 
 module.exports = EJSON;
 
-},{"lodash":9}],13:[function(require,module,exports){
+},{"lodash":24}],28:[function(require,module,exports){
 
 /*
 
@@ -28692,7 +29027,7 @@ HybridCollection = (function() {
 
 })();
 
-},{"./utils":21,"lodash":9}],14:[function(require,module,exports){
+},{"./utils":36,"lodash":24}],29:[function(require,module,exports){
 var Collection, IDBStore, IndexedDb, async, compileSort, processFind, utils, _;
 
 _ = require('lodash');
@@ -29182,7 +29517,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":20,"./utils":21,"async":22,"idb-wrapper":4,"lodash":9}],15:[function(require,module,exports){
+},{"./selector":35,"./utils":36,"async":37,"idb-wrapper":19,"lodash":24}],30:[function(require,module,exports){
 var Collection, LocalStorageDb, compileSort, processFind, utils, _;
 
 _ = require('lodash');
@@ -29496,7 +29831,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":20,"./utils":21,"lodash":9}],16:[function(require,module,exports){
+},{"./selector":35,"./utils":36,"lodash":24}],31:[function(require,module,exports){
 var Collection, MemoryDb, compileSort, processFind, utils, _;
 
 _ = require('lodash');
@@ -29720,7 +30055,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":20,"./utils":21,"lodash":9}],17:[function(require,module,exports){
+},{"./selector":35,"./utils":36,"lodash":24}],32:[function(require,module,exports){
 var $, Collection, RemoteDb, async, jQueryHttpClient, utils, _;
 
 _ = require('lodash');
@@ -29916,7 +30251,7 @@ Collection = (function() {
 
 })();
 
-},{"./jQueryHttpClient":19,"./utils":21,"async":22,"jquery":23,"lodash":9}],18:[function(require,module,exports){
+},{"./jQueryHttpClient":34,"./utils":36,"async":37,"jquery":38,"lodash":24}],33:[function(require,module,exports){
 var Collection, WebSQLDb, async, compileSort, doNothing, processFind, utils, _;
 
 _ = require('lodash');
@@ -30428,7 +30763,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":20,"./utils":21,"async":22,"lodash":9}],19:[function(require,module,exports){
+},{"./selector":35,"./utils":36,"async":37,"lodash":24}],34:[function(require,module,exports){
 module.exports = function(method, url, params, data, success, error) {
   var fullUrl, req;
   fullUrl = url + "?" + $.param(params);
@@ -30457,7 +30792,7 @@ module.exports = function(method, url, params, data, success, error) {
   });
 };
 
-},{}],20:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /*
 ========================================
 Meteor is licensed under the MIT License
@@ -31194,7 +31529,7 @@ LocalCollection._compileSort = function (spec) {
 exports.compileDocumentSelector = compileDocumentSelector;
 exports.compileSort = LocalCollection._compileSort;
 
-},{"./EJSON":12,"lodash":9}],21:[function(require,module,exports){
+},{"./EJSON":27,"lodash":24}],36:[function(require,module,exports){
 var async, bowser, compileDocumentSelector, compileSort, deg2rad, getDistanceFromLatLngInM, isLocalStorageSupported, pointInPolygon, processGeoIntersectsOperator, processNearOperator, _;
 
 _ = require('lodash');
@@ -31491,7 +31826,7 @@ exports.regularizeUpsert = function(docs, bases, success, error) {
   return [items, success, error];
 };
 
-},{"./HybridDb":13,"./IndexedDb":14,"./LocalStorageDb":15,"./MemoryDb":16,"./WebSQLDb":18,"./selector":20,"async":22,"bowser":2,"lodash":9}],22:[function(require,module,exports){
+},{"./HybridDb":28,"./IndexedDb":29,"./LocalStorageDb":30,"./MemoryDb":31,"./WebSQLDb":33,"./selector":35,"async":37,"bowser":2,"lodash":24}],37:[function(require,module,exports){
 (function (process,global){
 /*!
  * async
@@ -32760,7 +33095,7 @@ exports.regularizeUpsert = function(docs, bases, success, error) {
 }());
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":31}],23:[function(require,module,exports){
+},{"_process":46}],38:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -41972,7 +42307,7 @@ return jQuery;
 
 }));
 
-},{}],24:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 module.exports.RTCSessionDescription = window.RTCSessionDescription ||
 	window.mozRTCSessionDescription;
 module.exports.RTCPeerConnection = window.RTCPeerConnection ||
@@ -41980,7 +42315,7 @@ module.exports.RTCPeerConnection = window.RTCPeerConnection ||
 module.exports.RTCIceCandidate = window.RTCIceCandidate ||
 	window.mozRTCIceCandidate;
 
-},{}],25:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 var util = require('./util');
 var EventEmitter = require('eventemitter3');
 var Negotiator = require('./negotiator');
@@ -42249,7 +42584,7 @@ DataConnection.prototype.handleMessage = function(message) {
 
 module.exports = DataConnection;
 
-},{"./negotiator":27,"./util":30,"eventemitter3":3,"reliable":33}],26:[function(require,module,exports){
+},{"./negotiator":42,"./util":45,"eventemitter3":18,"reliable":48}],41:[function(require,module,exports){
 var util = require('./util');
 var EventEmitter = require('eventemitter3');
 var Negotiator = require('./negotiator');
@@ -42346,7 +42681,7 @@ MediaConnection.prototype.close = function() {
 
 module.exports = MediaConnection;
 
-},{"./negotiator":27,"./util":30,"eventemitter3":3}],27:[function(require,module,exports){
+},{"./negotiator":42,"./util":45,"eventemitter3":18}],42:[function(require,module,exports){
 var util = require('./util');
 var RTCPeerConnection = require('./adapter').RTCPeerConnection;
 var RTCSessionDescription = require('./adapter').RTCSessionDescription;
@@ -42657,7 +42992,7 @@ Negotiator.handleCandidate = function(connection, ice) {
 
 module.exports = Negotiator;
 
-},{"./adapter":24,"./util":30}],28:[function(require,module,exports){
+},{"./adapter":39,"./util":45}],43:[function(require,module,exports){
 var util = require('./util');
 var EventEmitter = require('eventemitter3');
 var Socket = require('./socket');
@@ -43156,7 +43491,7 @@ Peer.prototype.listAllPeers = function(cb) {
 
 module.exports = Peer;
 
-},{"./dataconnection":25,"./mediaconnection":26,"./socket":29,"./util":30,"eventemitter3":3}],29:[function(require,module,exports){
+},{"./dataconnection":40,"./mediaconnection":41,"./socket":44,"./util":45,"eventemitter3":18}],44:[function(require,module,exports){
 var util = require('./util');
 var EventEmitter = require('eventemitter3');
 
@@ -43372,7 +43707,7 @@ Socket.prototype.close = function() {
 
 module.exports = Socket;
 
-},{"./util":30,"eventemitter3":3}],30:[function(require,module,exports){
+},{"./util":45,"eventemitter3":18}],45:[function(require,module,exports){
 var defaultConfig = {'iceServers': [{ 'url': 'stun:stun.l.google.com:19302' }]};
 var dataCount = 1;
 
@@ -43688,7 +44023,7 @@ var util = {
 
 module.exports = util;
 
-},{"./adapter":24,"js-binarypack":6}],31:[function(require,module,exports){
+},{"./adapter":39,"js-binarypack":21}],46:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -43870,7 +44205,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],32:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /*
 	Ractive.js v0.7.3
 	Sat Apr 25 2015 13:52:38 GMT-0400 (EDT) - commit da40f81c660ba2f09c45a09a9c20fdd34ee36d80
@@ -60491,7 +60826,7 @@ process.umask = function() { return 0; };
 }));
 
 
-},{}],33:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 var util = require('./util');
 
 /**
@@ -60811,7 +61146,7 @@ Reliable.prototype.onmessage = function(msg) {};
 
 module.exports.Reliable = Reliable;
 
-},{"./util":34}],34:[function(require,module,exports){
+},{"./util":49}],49:[function(require,module,exports){
 var BinaryPack = require('js-binarypack');
 
 var util = {
@@ -60908,12 +61243,15 @@ var util = {
 
 module.exports = util;
 
-},{"js-binarypack":6}],35:[function(require,module,exports){
+},{"js-binarypack":21}],50:[function(require,module,exports){
 var Hashes = require('jshashes')
+var ee = require('event-emitter')
 
-var exports = module.exports = {
+var API = {
+  Emitter: ee({}),
+  Listener: null,
   Hash: function(title, content) {
-    var hash = new Hashes.MD5().hex(title+content)
+    var hash = new Hashes.MD5().hex(title+JSON.stringify(content))
     return {
       _id: hash,
       title: title,
@@ -60923,7 +61261,7 @@ var exports = module.exports = {
   Get: function(title, cb) {
     var re = new RegExp("^"+title+"$", 'i');
     Waka.db.Articles.findOne({title: re},{},function(match) {
-      if (!match) cb('Not found', null)
+      if (!match) { cb('Not found', null); return;}
       cb(null, match)
     })
   },
@@ -60934,16 +61272,14 @@ var exports = module.exports = {
         // maybe add to variants in memory
         Waka.db.Articles.remove(match._id)
       }
-      Waka.db.Articles.upsert(Waka.api.Hash(title,content), function() {
-        // returns true is content was overwritten
-        cb(null, match);
+      Waka.db.Articles.upsert(Waka.api.Hash(title,content), function(triplet) {
+        // broadcasting our new hash for this article
+        Waka.c.broadcast({
+          c: 'indexchange',
+          data: {_id: triplet._id, title: triplet.title}
+        })
+        cb(null, {match:match, triplet: triplet});
       })
-    })
-
-    // broadcasting our new hash for this article
-    Waka.c.broadcast({
-      c: 'indexchange',
-      data: {_id: article._id, title: title}
     })
   },
   Search: function(title, hash) {
@@ -60975,7 +61311,21 @@ var exports = module.exports = {
   }
 };
 
-},{"jshashes":8}],36:[function(require,module,exports){
+// Events
+// API.Emitter.on('connected', API.Listener = function(){
+//   console.log('connected');
+// })
+// API.Emitter.on('peerchange', API.Listener = function(){
+//   console.log('peerchange');
+// })
+// API.Emitter.on('newshare', API.Listener = function(args){
+//   console.log('newshare',args);
+// })
+
+
+var exports = module.exports = API;
+
+},{"event-emitter":17,"jshashes":23}],51:[function(require,module,exports){
 module.exports={
 	"PeerServer": {
 		"host": "127.0.0.1",
@@ -60989,10 +61339,10 @@ module.exports={
 	}
 }
 
-},{}],37:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 // connecting to network and adding a bunch of peers
 Waka.c.on('open', function(id) {
-	//Waka.Templates.Network.set('myId', Waka.c.id)
+	Waka.api.Emitter.emit('connected');
 	Waka.c.listAllPeers(function(p) {
 		for (var i = 0; i < p.length && i < 50; i++) {
 			if (Waka.c.id != p[i])
@@ -61022,7 +61372,7 @@ Waka.c.messageToPeer = function(peerId, message) {
 
 function savePeer(id, index) {
   Waka.mem.Peers.upsert({_id: id, index: index})
-  //Waka.Templates.Network.refresh()
+	Waka.api.Emitter.emit('peerchange');
 }
 
 function updateIndex(id, indexRow) {
@@ -61032,17 +61382,17 @@ function updateIndex(id, indexRow) {
 		if (Waka.mem.Peers.items[id].index[i].title == indexRow.title) {
 			Waka.mem.Peers.items[id].index[i]._id = indexRow._id
 			updated = true
+			Waka.api.Emitter.emit('peerchange');
 		}
 	}
 	if (!updated) {
 		Waka.mem.Peers.items[id].index.push(indexRow)
-		//Waka.Templates.Network.refresh()
 	}
 }
 
 function deletePeer(id) {
   Waka.mem.Peers.remove(id)
-  //Waka.Templates.Network.refresh()
+	Waka.api.Emitter.emit('peerchange');
 }
 
 function handshakePeer(conn) {
@@ -61137,8 +61487,8 @@ function handshakePeer(conn) {
 										console.log('Non-matching hash transmitted')
 										return
 									}
-									Waka.api.Set(res.data.title, res.data.content, function() {
-										//Waka.Templates.Article.refreshArticleTemplate(res.data)
+									Waka.api.Set(res.data.title, res.data.content, function(e, r) {
+										Waka.api.Emitter.emit('newshare', r.triplet);
 									})
 								}	else {
 									Waka.mem.Variants.upsert(res.data, function() {
@@ -61155,8 +61505,8 @@ function handshakePeer(conn) {
 				Waka.mem.Search.findOne({variant: res.data._id, origin: Waka.c.id}, {}, function(search) {
 	        if (!search) return
 					Waka.mem.Search.remove(search._id, function() {
-						Waka.mem.Variants.upsert(res.data, function() {
-							Waka.Templates.Article.showVariants()
+						Waka.mem.Variants.upsert(res.data, function(res) {
+							Waka.api.Emitter.emit('newsharevar', res);
 						})
 					})
 	      })
@@ -61169,7 +61519,7 @@ function handshakePeer(conn) {
   })
 }
 
-},{}],38:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 var minimongo = require("minimongo")
 var IndexedDb = minimongo.IndexedDb
 var LocalDb = minimongo.MemoryDb
@@ -61193,7 +61543,7 @@ require('./peer.js')
 // adding api
 Waka.api = require('./api.js')
 
-},{"./api.js":35,"./config.json":36,"./peer.js":37,"minimongo":11,"peerjs":28}],39:[function(require,module,exports){
+},{"./api.js":50,"./config.json":51,"./peer.js":52,"minimongo":26,"peerjs":43}],54:[function(require,module,exports){
 var Ractive = require( 'ractive' )
 
 Wakapedia.Templates.Article = new Ractive({
@@ -61210,7 +61560,7 @@ Wakapedia.Templates.Article = new Ractive({
     Wakapedia.Templates.Article.set('hidden', false)
     var re = new RegExp("^"+title+"$", 'i');
     // search on waka
-    Wakapedia.Templates.Article.searchForArticle(title)
+    Waka.api.Search(title)
     Waka.db.Articles.findOne({title: re}, {}, function(art) {
       if (art) Wakapedia.Templates.Article.refreshArticleTemplate(art)
       else {
@@ -61248,19 +61598,19 @@ Wakapedia.Templates.Article = new Ractive({
     if (article.content.text.substr(0,2) == '[[' && article.content.text.substr(article.content.text.length-2, 2) == ']]')
       Wakapedia.Templates.Article.displayAndSearch(article.content.text.substr(2,article.content.text.length-4), true)
   },
-  searchForArticle: function(title) {
-    console.log('Searching for',title)
-    Waka.mem.Search.find({origin: Waka.c.id},{}).fetch(function(s) {
-      for (var i = 0; i < s.length; i++) {
-        Waka.mem.Search.remove(s[i]._id)
-      }
-    })
-    Waka.mem.Search.upsert({title: title, origin: Waka.c.id})
-    Waka.c.broadcast({
-      c:'search',
-      data: {title: title, origin: Waka.c.id, echo: 2}
-    })
-  },
+  // searchForArticle: function(title) {
+  //   console.log('Searching for',title)
+  //   Waka.mem.Search.find({origin: Waka.c.id},{}).fetch(function(s) {
+  //     for (var i = 0; i < s.length; i++) {
+  //       Waka.mem.Search.remove(s[i]._id)
+  //     }
+  //   })
+  //   Waka.mem.Search.upsert({title: title, origin: Waka.c.id})
+  //   Waka.c.broadcast({
+  //     c:'search',
+  //     data: {title: title, origin: Waka.c.id, echo: 2}
+  //   })
+  // },
   createFromWiki: function() {
     var params = window.location.hash.split('#')
     var searchTitle = params[1]
@@ -61269,19 +61619,19 @@ Wakapedia.Templates.Article = new Ractive({
     if (wiki.title.toLowerCase() != searchTitle.toLowerCase())
       Wakapedia.AddNewRedirect(searchTitle, wiki.title, function(){})
     if (wiki.thumbnail && wiki.thumbnail.original)
-      Wakapedia.AddNewArticle(wiki.title, wiki.extract, wiki.thumbnail.original, function() {
-        Wakapedia.Templates.Article.displayAndSearch(wiki.title, true)
+      Wakapedia.AddNewArticle(wiki.title, wiki.extract, wiki.thumbnail.original, function(e,r) {
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
       })
     else
-      Wakapedia.AddNewArticle(wiki.title, wiki.extract, null, function() {
-        Wakapedia.Templates.Article.displayAndSearch(wiki.title, true)
+      Wakapedia.AddNewArticle(wiki.title, wiki.extract, null, function(e,r) {
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
       })
   },
   createBlankArticle: function() {
     var params = window.location.hash.split('#')
     var title = params[1]
-    Wakapedia.AddNewArticle(title, '', null, function() {
-      Wakapedia.Templates.Article.displayAndSearch(title, true)
+    Wakapedia.AddNewArticle(title, '', null, function(e,r) {
+      Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
     })
   },
   switchEditMode: function() {
@@ -61333,8 +61683,8 @@ Wakapedia.Templates.Article = new Ractive({
   saveArticle: function() {
     var currentArticle = Wakapedia.Templates.Article.get().article
     if (!currentArticle) return
-    Wakapedia.AddNewArticle(currentArticle.title, $('#editContent').val(), $('#editImage').val(), function() {
-      Wakapedia.Templates.Article.displayAndSearch(currentArticle.title, true)
+    Wakapedia.AddNewArticle(currentArticle.title, $('#editContent').val(), $('#editImage').val(), function(e,r) {
+      Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
     })
   },
   compareVariant: function(event) {
@@ -61345,12 +61695,12 @@ Wakapedia.Templates.Article = new Ractive({
     Waka.mem.Variants.findOne({_id: event.context._id}, {}, function(variant){
       variant.contentHtml = Wakapedia.Syntax(variant.content.text)
       var dmp = new diff_match_patch();
-      var d = dmp.diff_main(Wakapedia.Templates.Article.get('article.content'), variant.content);
+      var d = dmp.diff_main(Wakapedia.Templates.Article.get('article.content.text'), variant.content.text);
       dmp.diff_cleanupSemantic(d);
       variant.diffString = dmp.diff_prettyHtml(d);
-      if (Wakapedia.Templates.Article.get('article.image') != variant.image)
+      if (Wakapedia.Templates.Article.get('article.content.image') != variant.content.image)
         variant.imageChange = {
-          old: Wakapedia.Templates.Article.get('article.image')
+          old: Wakapedia.Templates.Article.get('article.content.image')
         }
       variant.isCompare = true
       Wakapedia.Templates.Article.set('variant', variant)
@@ -61369,9 +61719,9 @@ Wakapedia.Templates.Article = new Ractive({
   },
   adoptVariant: function(event) {
     Waka.mem.Variants.findOne({_id: event.context._id}, {}, function(variant){
-      // Wakapedia.AddNewArticle(variant.title, variant.content, variant.image, variant._id, function() {
-      //   Wakapedia.Templates.Article.refreshArticleTemplate(variant)
-      // })
+      Wakapedia.AddNewArticle(variant.title, variant.content.text, variant.content.image, function(e,r) {
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+      })
     })
   },
   downloadVariant: function(event) {
@@ -61406,7 +61756,7 @@ Wakapedia.Templates.Article.on({
   createBlankArticle: Wakapedia.Templates.Article.createBlankArticle
 })
 
-},{"ractive":32}],40:[function(require,module,exports){
+},{"ractive":47}],55:[function(require,module,exports){
 var Ractive = require( 'ractive' )
 
 Wakapedia.Templates.Network = new Ractive({
@@ -61416,6 +61766,7 @@ Wakapedia.Templates.Network = new Ractive({
   refresh: function() {
     Waka.mem.Peers.find({},{}).fetch(function(res){
       Wakapedia.Templates.Network.set('connected', res.length)
+      Wakapedia.Templates.Network.set('myId', Waka.c.id)
       var articles = []
       for (var i = 0; i < res.length; i++) {
         if (!res[i].index) continue
@@ -61433,11 +61784,7 @@ Wakapedia.Templates.Network = new Ractive({
   }
 })
 
-Wakapedia.Templates.Network.observeOnce('connected', function(r,p){
-  if (r) Wakapedia.CheckUrlHash()
-})
-
-},{"ractive":32}],41:[function(require,module,exports){
+},{"ractive":47}],56:[function(require,module,exports){
 require('wakajs')
 var Config = require('./config.json')
 var Ractive = require( 'ractive' )
@@ -61493,6 +61840,21 @@ Wakapedia = {
 require('./templates/article.js')
 require('./templates/network.js')
 
+// Plug Waka Events
+Waka.api.Emitter.on('connected', listener = function(){
+  Wakapedia.CheckUrlHash()
+})
+Waka.api.Emitter.on('peerchange', listener = function(){
+  Wakapedia.Templates.Network.refresh()
+  Wakapedia.Templates.Article.showVariants()
+})
+Waka.api.Emitter.on('newshare', listener = function(article){
+  Wakapedia.Templates.Article.refreshArticleTemplate(article)
+})
+Waka.api.Emitter.on('newsharevar', listener = function(article){
+  Wakapedia.Templates.Article.showVariants()
+})
+
 // search feature
 $( "#search" ).submit(function( event ) {
   window.location.hash = '#' + event.target.title.value
@@ -61503,7 +61865,7 @@ $(window).on('hashchange', function() {
   Wakapedia.CheckUrlHash()
 });
 
-},{"./config.json":1,"./templates/article.js":39,"./templates/network.js":40,"./wikipedia-api.js":42,"marked":10,"ractive":32,"wakajs":38}],42:[function(require,module,exports){
+},{"./config.json":1,"./templates/article.js":54,"./templates/network.js":55,"./wikipedia-api.js":57,"marked":25,"ractive":47,"wakajs":53}],57:[function(require,module,exports){
 var $ = require("jquery")
 WikipediaApi = {
   getExtract: function(title, callback) {
@@ -61588,4 +61950,4 @@ WikipediaApi = {
   }
 }
 
-},{"jquery":5}]},{},[41]);
+},{"jquery":20}]},{},[56]);

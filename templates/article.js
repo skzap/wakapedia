@@ -149,12 +149,12 @@ Wakapedia.Templates.Article = new Ractive({
     Waka.mem.Variants.findOne({_id: event.context._id}, {}, function(variant){
       variant.contentHtml = Wakapedia.Syntax(variant.content.text)
       var dmp = new diff_match_patch();
-      var d = dmp.diff_main(Wakapedia.Templates.Article.get('article.content'), variant.content);
+      var d = dmp.diff_main(Wakapedia.Templates.Article.get('article.content.text'), variant.content.text);
       dmp.diff_cleanupSemantic(d);
       variant.diffString = dmp.diff_prettyHtml(d);
-      if (Wakapedia.Templates.Article.get('article.image') != variant.image)
+      if (Wakapedia.Templates.Article.get('article.content.image') != variant.content.image)
         variant.imageChange = {
-          old: Wakapedia.Templates.Article.get('article.image')
+          old: Wakapedia.Templates.Article.get('article.content.image')
         }
       variant.isCompare = true
       Wakapedia.Templates.Article.set('variant', variant)
@@ -173,9 +173,9 @@ Wakapedia.Templates.Article = new Ractive({
   },
   adoptVariant: function(event) {
     Waka.mem.Variants.findOne({_id: event.context._id}, {}, function(variant){
-      // Wakapedia.AddNewArticle(variant.title, variant.content, variant.image, variant._id, function() {
-      //   Wakapedia.Templates.Article.refreshArticleTemplate(variant)
-      // })
+      Wakapedia.AddNewArticle(variant.title, variant.content.text, variant.content.image, function(e,r) {
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+      })
     })
   },
   downloadVariant: function(event) {

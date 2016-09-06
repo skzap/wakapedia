@@ -38,8 +38,8 @@
       {{#if variant.isCompare}}
         <div id='variant'>
           {{#if imageChange}}
-            <img src='{{image}}' width='15%' style='float: right; border: 2px solid black; margin: 15px;' />
-            <img src='{{imageChange.old}}' width='10%' style='float: right; border: 2px solid red; margin: 15px;' />
+            <img src='{{content.image}}' width='15%' style='float: right; border: 2px solid black; margin: 15px;' />
+            <img src='{{content.imageChange.old}}' width='10%' style='float: right; border: 2px solid red; margin: 15px;' />
           {{/if}}
           <h4>Variant #{{shortId(_id)}} comparison</h4>
           {{{diffString}}}
@@ -58,7 +58,7 @@
     {{#if edit}}
       <div id='waka-edit'>
         <input id='editImage' type='text' value='{{article.content.image}}' />
-        <textarea id='editContent' style='width:100%' rows='20'>{{article.content}}</textarea>
+        <textarea id='editContent' style='width:100%' rows='20'>{{article.content.text}}</textarea>
         <button id='saveArticle' on-click='saveArticle' type='submit'>Save Article</button>
       </div>
     {{else}}
