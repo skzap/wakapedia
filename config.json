@@ -1,4 +1,10 @@
 {
 	"ExpressPort": 3001,
-	"DefaultArticle": "Wakapedia"
+	"DefaultArticle": "Wakapedia",
+	"SignalServer": {
+		"host": "wakapedia.info",
+		"port": 3150,
+		"path": "/peerjs",
+		"debug": false
+	}
 }

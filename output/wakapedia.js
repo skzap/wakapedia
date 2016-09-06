@@ -1,7 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports={
 	"ExpressPort": 3001,
-	"DefaultArticle": "Wakapedia"
+	"DefaultArticle": "Wakapedia",
+	"SignalServer": {
+		"host": "wakapedia.info",
+		"port": 3150,
+		"path": "/peerjs",
+		"debug": false
+	}
 }
 
 },{}],2:[function(require,module,exports){
@@ -61527,6 +61533,12 @@ var Peer = require('peerjs')
 var WakaConfig = require('./config.json')
 
 Waka = {
+  connect: function(options) {
+    if (!options) options=WakaConfig.PeerServer
+    Waka.c = new Peer(options)
+    // loading peer protocol
+    require('./peer.js')
+  },
   db: new IndexedDb({namespace: 'waka'}),
   mem: new LocalDb()
 }
@@ -61537,11 +61549,11 @@ Waka.mem.addCollection('Search')
 Waka.mem.addCollection('Variants')
 
 // connecting to signalling server
-Waka.c = new Peer(WakaConfig.PeerServer)
-// loading peer protocol
-require('./peer.js')
+Waka.c = null;
 // adding api
 Waka.api = require('./api.js')
+
+var exports = module.exports = Waka;
 
 },{"./api.js":50,"./config.json":51,"./peer.js":52,"minimongo":26,"peerjs":43}],54:[function(require,module,exports){
 var Ractive = require( 'ractive' )
@@ -61791,6 +61803,8 @@ var Ractive = require( 'ractive' )
 var marked = require('marked')
 Ractive.DEBUG = false
 require('./wikipedia-api.js')
+
+Waka.connect(Config.SignalServer)
 
 Wakapedia = {
   Syntax: function(content) {

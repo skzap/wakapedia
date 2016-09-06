@@ -5,6 +5,8 @@ var marked = require('marked')
 Ractive.DEBUG = false
 require('./wikipedia-api.js')
 
+Waka.connect(Config.SignalServer)
+
 Wakapedia = {
   Syntax: function(content) {
     //var contentHtml = marked(content)
