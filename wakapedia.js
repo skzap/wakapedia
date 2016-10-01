@@ -1,4 +1,4 @@
-require('wakajs')
+require('../waka3/waka.js')
 var Config = require('./config.json')
 var Ractive = require( 'ractive' )
 var marked = require('marked')
@@ -32,7 +32,7 @@ Wakapedia = {
     return marked(content)
   },
   AddNewArticle: function(title, content, image, cb) {
-    Waka.api.Set(title, {text: content, image: image}, function(e,r) {
+    Waka.api.Set(title, {text: content, image: image}, "STEEM", function(e,r) {
       cb(e,r)
     })
   },

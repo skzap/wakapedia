@@ -74,18 +74,18 @@ Wakapedia.Templates.Article = new Ractive({
       Wakapedia.AddNewRedirect(searchTitle, wiki.title, function(){})
     if (wiki.thumbnail && wiki.thumbnail.original)
       Wakapedia.AddNewArticle(wiki.title, wiki.extract, wiki.thumbnail.original, function(e,r) {
-        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.article)
       })
     else
       Wakapedia.AddNewArticle(wiki.title, wiki.extract, null, function(e,r) {
-        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.article)
       })
   },
   createBlankArticle: function() {
     var params = window.location.hash.split('#')
     var title = params[1]
     Wakapedia.AddNewArticle(title, '', null, function(e,r) {
-      Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+      Wakapedia.Templates.Article.refreshArticleTemplate(r.article)
     })
   },
   switchEditMode: function() {
@@ -139,7 +139,7 @@ Wakapedia.Templates.Article = new Ractive({
     var currentArticle = Wakapedia.Templates.Article.get().article
     if (!currentArticle) return
     Wakapedia.AddNewArticle(currentArticle.title, $('#editContent').val(), $('#editImage').val(), function(e,r) {
-      Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+      Wakapedia.Templates.Article.refreshArticleTemplate(r.article)
     })
   },
   compareVariant: function(event) {
@@ -175,7 +175,7 @@ Wakapedia.Templates.Article = new Ractive({
   adoptVariant: function(event) {
     Waka.mem.Variants.findOne({_id: event.context._id}, {}, function(variant){
       Wakapedia.AddNewArticle(variant.title, variant.content.text, variant.content.image, function(e,r) {
-        Wakapedia.Templates.Article.refreshArticleTemplate(r.triplet)
+        Wakapedia.Templates.Article.refreshArticleTemplate(r.article)
       })
     })
   },
