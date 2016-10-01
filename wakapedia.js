@@ -32,7 +32,7 @@ Wakapedia = {
     return marked(content)
   },
   AddNewArticle: function(title, content, image, cb) {
-    Waka.api.Set(title, {text: content, image: image}, "STEEM", function(e,r) {
+    Waka.api.Set(title, {text: content, image: image}, {timestampAuthority: "STEEM"}, function(e,r) {
       cb(e,r)
     })
   },
