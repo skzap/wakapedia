@@ -44,9 +44,22 @@
     <button on-click='editArticle'>Edit</button>
     {{#if edit}}
       <div id='waka-edit'>
-        <input id='editImage' type='text' value='{{article.content.image}}' />
-        <textarea id='editContent' style='width:100%' rows='20'>{{article.content.text}}</textarea>
-        <button id='saveArticle' on-click='saveArticle' type='submit'>Save Article</button>
+        image: <input id='editImage' type='text' value='{{article.content.image}}' />
+        <br />text: <textarea id='editContent' style='width:100%' rows='20'>{{article.content.text}}</textarea>
+        <br />Timestamp on:
+        <select id='editTimestampAuthority'>
+          <option value=''>Nothing</option>
+          <option>STEEM</option>
+        </select>
+        <br />Sign with Key:
+        <select id='editSigningKey'>
+          <option value=''>No signing</option>
+          {{#myKeys}}
+            <option>{{publicKeyBase64}}</option>
+          {{/myKeys}}
+        </select>
+        <button on-click='generateNewKey'>Generate a new key pair</button>
+        <br /><button id='saveArticle' on-click='saveArticle' type='submit'>Save Article</button>
       </div>
     {{else}}
       <div id='waka'>
