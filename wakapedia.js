@@ -1,4 +1,4 @@
-require('../waka3/waka.js')
+require('../waka2/waka.js')
 var Config = require('./config.json')
 var Ractive = require( 'ractive' )
 var marked = require('marked')
@@ -31,13 +31,16 @@ Wakapedia = {
     }
     return marked(content)
   },
-  AddNewArticle: function(title, content, image, cb) {
-    Waka.api.Set(title, {text: content, image: image}, {timestampAuthority: "STEEM"}, function(e,r) {
+  AddNewArticle: function(title, content, image, timestampAuthority, signingKey, cb) {
+    var options = {}
+    if (timestampAuthority) options.timestampAuthority = timestampAuthority
+    if (signingKey) options.signingKey = signingKey
+    Waka.api.Set(title, {text: content, image: image}, options, function(e,r) {
       cb(e,r)
     })
   },
   AddNewRedirect: function(titleFrom, titleTo, cb) {
-    Wakapedia.AddNewArticle(titleFrom, '[['+titleTo+']]', null, function(e,r){
+    Wakapedia.AddNewArticle(titleFrom, '[['+titleTo+']]', null, null, null, function(e,r){
       cb(e,r)
     })
   },
